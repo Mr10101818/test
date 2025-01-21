@@ -1,11 +1,10 @@
 package com.itheima;
 
+import com.itheima.pojo.User;
 import com.mysql.cj.jdbc.Driver;
 import org.junit.jupiter.api.Test;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.Statement;
+import java.sql.*;
 
 public class JdbcTest {
 
@@ -33,6 +32,55 @@ public class JdbcTest {
         statement.close();
         connection.close();
 
+    }
 
+    @Test
+    public void testSelect() throws Exception {
+
+        String JDBC_URL = "jdbc:mysql://localhost:3306/web01";
+        String JDBC_USER = "root";
+        String JDBC_PASSWORD = "123456";
+
+        Connection conn = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+
+        try {
+            // 1. 加载数据库驱动 (对于较新的JDBC驱动，这一步通常是不需要显式调用的)
+            Class.forName("com.mysql.cj.jdbc.Driver");
+
+            // 2. 获取数据库连接
+            conn = DriverManager.getConnection(JDBC_URL, JDBC_USER, JDBC_PASSWORD);
+
+            // 3. 准备SQL语句
+            String sql = "SELECT id, username, password, name, age FROM user WHERE username=? AND password=?";
+            pstmt = conn.prepareStatement(sql);
+            pstmt.setString(1, "daqiao");
+            pstmt.setString(2, "123456");
+
+            // 4. 执行查询
+            rs = pstmt.executeQuery();
+
+            // 5. 处理结果集
+            while (rs.next()) {
+                User user = new User(
+                        rs.getInt("id"),
+                        rs.getString("username"),
+                        rs.getString("password"),
+                        rs.getString("name"),
+                        rs.getInt("age")
+                );
+
+                // 输出用户信息到控制台
+                System.out.println(user);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        } finally {
+            // 关闭资源
+            try { if (rs != null) rs.close(); } catch (SQLException e) { /* ignored */ }
+            try { if (pstmt != null) pstmt.close(); } catch (SQLException e) { /* ignored */ }
+            try { if (conn != null) conn.close(); } catch (SQLException e) { /* ignored */ }
+        }
     }
 }
